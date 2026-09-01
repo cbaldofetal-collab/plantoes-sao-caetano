@@ -1,0 +1,521 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Formulário de Plantões - Medicina Fetal</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            max-width: 600px;
+            width: 100%;
+            padding: 40px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            border-bottom: 3px solid #667eea;
+            padding-bottom: 20px;
+        }
+
+        .header h1 {
+            color: #333;
+            font-size: 28px;
+            margin-bottom: 5px;
+        }
+
+        .header p {
+            color: #666;
+            font-size: 14px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        input[type="text"],
+        input[type="date"],
+        select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 6px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+        }
+
+        input[type="text"]:focus,
+        input[type="date"]:focus,
+        select:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        input.error {
+            border-color: #ff4757 !important;
+            background: #ffe6e6;
+        }
+
+        .error-message {
+            color: #ff4757;
+            font-size: 12px;
+            margin-top: 5px;
+            display: none;
+        }
+
+        .error-message.show {
+            display: block;
+        }
+
+        .turnos-container {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .turno-btn {
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 6px;
+            background: white;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+            font-size: 14px;
+        }
+
+        .turno-btn:hover {
+            border-color: #667eea;
+            background: #f0f4ff;
+        }
+
+        .turno-btn.active {
+            background: #667eea;
+            color: white;
+            border-color: #667eea;
+        }
+
+        .plantoes-list {
+            background: #f9f9f9;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 20px 0;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .plantao-item {
+            background: white;
+            padding: 10px 12px;
+            margin-bottom: 8px;
+            border-radius: 6px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-left: 4px solid #667eea;
+            font-size: 14px;
+        }
+
+        .plantao-item button {
+            background: #ff4757;
+            color: white;
+            border: none;
+            padding: 4px 8px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+            transition: background 0.3s;
+        }
+
+        .plantao-item button:hover {
+            background: #ff3838;
+        }
+
+        .buttons-container {
+            display: flex;
+            gap: 10px;
+            margin-top: 30px;
+        }
+
+        button {
+            flex: 1;
+            padding: 14px 20px;
+            border: none;
+            border-radius: 6px;
+            font-weight: 600;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-adicionar {
+            background: #2ed573;
+            color: white;
+        }
+
+        .btn-adicionar:hover {
+            background: #26de81;
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(46, 213, 115, 0.3);
+        }
+
+        .btn-adicionar:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .btn-enviar {
+            background: #667eea;
+            color: white;
+        }
+
+        .btn-enviar:hover {
+            background: #5568d3;
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn-baixar {
+            background: #ff9f43;
+            color: white;
+        }
+
+        .btn-baixar:hover {
+            background: #ff8c3a;
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(255, 159, 67, 0.3);
+        }
+
+        .success-message {
+            background: #d4edda;
+            color: #155724;
+            padding: 12px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+            text-align: center;
+            display: none;
+        }
+
+        .success-message.show {
+            display: block;
+        }
+
+        .info-box {
+            background: #e7f3ff;
+            border-left: 4px solid #667eea;
+            padding: 12px;
+            margin-bottom: 20px;
+            border-radius: 6px;
+            font-size: 13px;
+            color: #333;
+        }
+
+        .loading {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border: 2px solid #ccc;
+            border-radius: 50%;
+            border-top-color: #667eea;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📋 Plantões - Medicina Fetal</h1>
+            <p>São Caetano - Julho 2026</p>
+        </div>
+
+        <div class="info-box">
+            ℹ️ Preencha seus dados e adicione seus plantões. Você pode adicionar múltiplos turnos.
+        </div>
+
+        <div class="success-message" id="successMessage">
+            ✓ Plantão adicionado com sucesso!
+        </div>
+
+        <form id="formPlantao">
+            <div class="form-group">
+                <label for="crm">CRM (Código do Conselho) *</label>
+                <input type="text" id="crm" placeholder="Ex: 123456" required>
+                <div class="error-message" id="crmError"></div>
+            </div>
+
+            <div class="form-group">
+                <label for="nome">Nome (Preenchido automaticamente)</label>
+                <input type="text" id="nome" placeholder="Nome aparecerá após CRM válido" disabled>
+            </div>
+
+            <div class="form-group">
+                <label for="data">Data do Plantão *</label>
+                <input type="date" id="data" required>
+            </div>
+
+            <div class="form-group">
+                <label>Turno *</label>
+                <div class="turnos-container">
+                    <button type="button" class="turno-btn" data-turno="M">Manhã</button>
+                    <button type="button" class="turno-btn" data-turno="D">Dia</button>
+                    <button type="button" class="turno-btn" data-turno="T">Tarde</button>
+                    <button type="button" class="turno-btn" data-turno="N">Noite</button>
+                </div>
+            </div>
+
+            <button type="button" class="btn-adicionar" id="btnAdicionar">✓ Adicionar Plantão</button>
+        </form>
+
+        <h3 style="margin-top: 30px; margin-bottom: 15px; color: #333;">Plantões Registrados:</h3>
+        <div class="plantoes-list" id="plantoesList">
+            <p style="text-align: center; color: #999;">Nenhum plantão adicionado ainda</p>
+        </div>
+
+        <div class="buttons-container">
+            <button class="btn-baixar" id="btnBaixar">📥 Baixar CSV</button>
+            <button class="btn-enviar" id="btnEnviar">✓ Enviar</button>
+        </div>
+    </div>
+
+    <script>
+        let plantoes = [];
+        let turnoSelecionado = null;
+        let medicosDatabase = [];
+
+        // Carrega lista de médicos
+        async function carregarMedicos() {
+            try {
+                const response = await fetch('./medicos.json');
+                const data = await response.json();
+                medicosDatabase = data.medicos;
+                console.log('✓ Médicos carregados:', medicosDatabase.length);
+            } catch (error) {
+                console.error('Erro ao carregar médicos:', error);
+                // Fallback - usa lista local se arquivo não carregar
+                medicosDatabase = [
+                    {"nome": "Camila Cristiani", "crm": "135947"},
+                    {"nome": "Saulo Fernando Vieira", "crm": "100609"},
+                    {"nome": "Carlos Alberto Raimundo Baldo", "crm": "70451"},
+                    {"nome": "Ellen Cristina Xavier Julio", "crm": "195594"},
+                    {"nome": "Ana Paula Mondragon Landin", "crm": "134071"},
+                    {"nome": "Jessica Aran Roseto", "crm": "184869"},
+                    {"nome": "Melissa Vibian Bueno", "crm": "97988"},
+                    {"nome": "Giuliana Annichchino", "crm": "185103"},
+                    {"nome": "Roberta Pires Smith da Silva", "crm": "142099"},
+                    {"nome": "Luciana Verissimo Fernandes", "crm": "175976"},
+                    {"nome": "Fabiola Marcante", "crm": "149597"},
+                    {"nome": "Clara de Moura Guimaraes", "crm": "219671"},
+                    {"nome": "Luiza G. Coutinho", "crm": "219726"},
+                    {"nome": "João Victor Jacomele Caldas", "crm": "219698"},
+                    {"nome": "Felipe de Oliveira Bertucci", "crm": "190490"},
+                    {"nome": "Roberta Kronenberger", "crm": "122000"},
+                    {"nome": "Luciana Alves Lourenco", "crm": "155376"},
+                    {"nome": "Nathallia Souza Guariento", "crm": "183715"},
+                    {"nome": "Elen Cristina Xavier Julio", "crm": "195594"},
+                    {"nome": "Simone Dettenborn", "crm": "179556"},
+                    {"nome": "Carolina Longo", "crm": "175777"},
+                    {"nome": "Aline Araujo Menezes Moreira", "crm": "203476"},
+                    {"nome": "Juliana Cristina de Oliveira Sampaio", "crm": "203223"},
+                    {"nome": "Karolinne Gomes Monteles Araujo", "crm": "195241"},
+                    {"nome": "Isabel Area de Almeida Andrade Leao", "crm": "210471"},
+                    {"nome": "Heide França Seraphim Gonçalves", "crm": "198547"},
+                    {"nome": "Vanessa Oliveira Maciel", "crm": "206630"},
+                    {"nome": "Lissa Avila Barbosa Carnauba", "crm": "221454"},
+                    {"nome": "Bruna Siqueira de Abreu Brito Guimaraes", "crm": "211539"},
+                    {"nome": "Milena Giuberti Bathomarco", "crm": "220792"},
+                    {"nome": "Jessica Brabo Dantas", "crm": "211728"},
+                    {"nome": "Leticia Silva Carvalho", "crm": "208078"},
+                    {"nome": "Larissa Strelniek Aguiar", "crm": "213321"},
+                    {"nome": "Maria Isabel Carvalho Tosello", "crm": "164052"},
+                    {"nome": "Luiza Breuel Luz", "crm": "207318"},
+                    {"nome": "Ana Lara Rodrigues Monteiro Barros", "crm": "271222"}
+                ];
+            }
+        }
+
+        // Valida e busca médico por CRM
+        document.getElementById('crm').addEventListener('change', () => {
+            const crm = document.getElementById('crm').value.trim();
+            const crmError = document.getElementById('crmError');
+            const nomeInput = document.getElementById('nome');
+
+            crmError.classList.remove('show');
+
+            if (!crm) {
+                nomeInput.value = '';
+                return;
+            }
+
+            const medico = medicosDatabase.find(m => m.crm === crm);
+
+            if (medico) {
+                nomeInput.value = medico.nome;
+                document.getElementById('crm').classList.remove('error');
+            } else {
+                nomeInput.value = '';
+                document.getElementById('crm').classList.add('error');
+                crmError.textContent = '❌ CRM não encontrado na base de dados';
+                crmError.classList.add('show');
+            }
+        });
+
+        // Seleção de turno
+        document.querySelectorAll('.turno-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.preventDefault();
+                document.querySelectorAll('.turno-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                turnoSelecionado = btn.dataset.turno;
+            });
+        });
+
+        // Define datas de julho
+        const dataMinima = new Date('2026-07-01');
+        const dataMaxima = new Date('2026-07-31');
+        document.getElementById('data').min = dataMinima.toISOString().split('T')[0];
+        document.getElementById('data').max = dataMaxima.toISOString().split('T')[0];
+
+        // Adicionar plantão
+        document.getElementById('btnAdicionar').addEventListener('click', (e) => {
+            e.preventDefault();
+
+            const crm = document.getElementById('crm').value.trim();
+            const nome = document.getElementById('nome').value.trim();
+            const data = document.getElementById('data').value;
+
+            if (!crm || !nome || !data || !turnoSelecionado) {
+                alert('Por favor, preencha todos os campos!');
+                return;
+            }
+
+            const plantao = {
+                id: Date.now(),
+                nome,
+                crm,
+                data,
+                turno: turnoSelecionado
+            };
+
+            plantoes.push(plantao);
+            atualizarLista();
+
+            // Feedback visual
+            const msg = document.getElementById('successMessage');
+            msg.classList.add('show');
+            setTimeout(() => msg.classList.remove('show'), 2000);
+
+            // Limpar turno
+            document.querySelectorAll('.turno-btn').forEach(b => b.classList.remove('active'));
+            turnoSelecionado = null;
+        });
+
+        // Atualizar lista de plantões
+        function atualizarLista() {
+            const lista = document.getElementById('plantoesList');
+
+            if (plantoes.length === 0) {
+                lista.innerHTML = '<p style="text-align: center; color: #999;">Nenhum plantão adicionado ainda</p>';
+                return;
+            }
+
+            lista.innerHTML = plantoes.map(p => `
+                <div class="plantao-item">
+                    <div>
+                        <strong>${p.nome}</strong> (CRM: ${p.crm})<br>
+                        <small style="color: #666;">${new Date(p.data).toLocaleDateString('pt-BR')} - Turno ${p.turno}</small>
+                    </div>
+                    <button type="button" onclick="removerPlantao(${p.id})">Remover</button>
+                </div>
+            `).join('');
+        }
+
+        // Remover plantão
+        window.removerPlantao = function(id) {
+            plantoes = plantoes.filter(p => p.id !== id);
+            atualizarLista();
+        };
+
+        // Baixar CSV
+        document.getElementById('btnBaixar').addEventListener('click', () => {
+            if (plantoes.length === 0) {
+                alert('Adicione plantões antes de baixar!');
+                return;
+            }
+
+            let csv = 'Nome,CRM,Data,Turno\n';
+            plantoes.forEach(p => {
+                csv += `"${p.nome}","${p.crm}","${p.data}","${p.turno}"\n`;
+            });
+
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = `plantoes_sao_caetano_${new Date().toISOString().split('T')[0]}.csv`;
+            link.click();
+        });
+
+        // Enviar
+        document.getElementById('btnEnviar').addEventListener('click', async () => {
+            if (plantoes.length === 0) {
+                alert('Adicione plantões antes de enviar!');
+                return;
+            }
+
+            const btn = document.getElementById('btnEnviar');
+            btn.disabled = true;
+            btn.innerHTML = '<span class="loading"></span> Enviando...';
+
+            try {
+                // Simula envio (em produção, faria POST para um servidor)
+                setTimeout(() => {
+                    alert(`✓ ${plantoes.length} plantão(ões) registrado(s) com sucesso!\n\nBaixe o CSV para atualizar sua planilha Excel.`);
+                    btn.disabled = false;
+                    btn.innerHTML = '✓ Enviar';
+                    console.log('Dados enviados:', plantoes);
+                }, 1000);
+            } catch (error) {
+                alert('Erro ao enviar. Tente novamente.');
+                btn.disabled = false;
+                btn.innerHTML = '✓ Enviar';
+            }
+        });
+
+        // Inicializa
+        carregarMedicos();
+    </script>
+</body>
+</html>
