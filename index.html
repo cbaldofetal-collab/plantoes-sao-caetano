@@ -297,7 +297,10 @@
                 </div>
             </div>
 
-            <button type="button" class="btn-adicionar" id="btnAdicionar">✓ Adicionar Plantão</button>
+            <div style="display: flex; gap: 10px;">
+                <button type="button" class="btn-adicionar" id="btnAdicionar">✓ Adicionar Plantão</button>
+                <button type="button" style="background: #95a5a6; color: white; flex: 1; padding: 14px 20px; border: none; border-radius: 6px; font-weight: 600; font-size: 14px; cursor: pointer; transition: all 0.3s;" id="btnLimpar">🔄 Limpar</button>
+            </div>
         </form>
 
         <h3 style="margin-top: 30px; margin-bottom: 15px; color: #333;">Plantões Registrados:</h3>
@@ -439,6 +442,16 @@
             setTimeout(() => msg.classList.remove('show'), 2000);
 
             // Limpar turno
+            document.querySelectorAll('.turno-btn').forEach(b => b.classList.remove('active'));
+            turnoSelecionado = null;
+        });
+
+        // Limpar campos
+        document.getElementById('btnLimpar').addEventListener('click', (e) => {
+            e.preventDefault();
+            document.getElementById('crm').value = '';
+            document.getElementById('nome').value = '';
+            document.getElementById('data').value = '';
             document.querySelectorAll('.turno-btn').forEach(b => b.classList.remove('active'));
             turnoSelecionado = null;
         });
