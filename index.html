@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Formulário de Plantões - Medicina Fetal</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        .container {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            max-width: 600px;
+            width: 100%;
+            padding: 40px;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            border-bottom: 3px solid #667eea;
+            padding-bottom: 20px;
+        }
+        .header h1 { color: #333; font-size: 28px; margin-bottom: 5px; }
+        .header p { color: #666; font-size: 14px; }
+        .info-box {
+            background: #e7f3ff;
+            border-left: 4px solid #667eea;
+            padding: 12px;
+            margin-bottom: 20px;
+            border-radius: 6px;
+            font-size: 13px;
+            color: #333;
+        }
+        .form-group { margin-bottom: 20px; }
+        label { display: block; margin-bottom: 8px; color: #333; font-weight: 600; font-size: 14px; }
+        input[type="text"], input[type="date"], select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 6px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+        }
+        input:focus, select:focus { outline: none; border-color: #667eea; box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1); }
+        input.error { border-color: #ff4757 !important; background: #ffe6e6; }
+        .error-message { color: #ff4757; font-size: 12px; margin-top: 5px; display: none; }
+        .error-message.show { display: block; }
+        .turnos-container {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+            margin-top: 10px;
+        }
+        .turno-btn {
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 6px;
+            background: white;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+            font-size: 14px;
+        }
+        .turno-btn:hover { border-color: #667eea; background: #f0f4ff; }
+        .turno-btn.active { background: #667eea; color: white; border-color: #667eea; }
+        .success-message {
+            background: #d4edda;
+            color: #155724;
+            padding: 12px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+            text-align: center;
+            display: none;
+        }
+        .success-message.show { display: block; }
+        .error-box {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 12px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+            text-align: center;
+            display: none;
+        }
+        .error-box.show { display: block; }
+        .buttons-container { display: flex; gap: 10px; margin-top: 30px; }
+        button { flex: 1; padding: 14px 20px; border: none; border-radius: 6px; font-weight: 600; font-size: 14px; cursor: pointer; transition: all 0.3s; }
+        .btn-adicionar { background: #2ed573; color: white; }
+        .btn-adicionar:hover { background: #26de81; }
+        .btn-adicionar:disabled { background: #ccc; cursor: not-allowed; }
+        .btn-limpar { background: #95a5a6; color: white; }
+        .btn-limpar:hover { background: #7f8c8d; }
+        .btn-admin { background: #3498db; color: white; margin-top: 10px; }
+        .btn-admin:hover { background: #2980b9; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📋 Plantões - Medicina Fetal</h1>
+            <p>São Caetano - Setembro 2026</p>
+        </div>
+
+        <div class="info-box">
+            ℹ️ Preencha seus dados e clique em "Adicionar Plantão". Você pode adicionar múltiplos turnos.
+        </div>
+
+        <div class="success-message" id="successMessage">✓ Plantão adicionado com sucesso!</div>
+        <div class="error-box" id="errorBox"></div>
+
+        <form id="formPlantao">
+            <div class="form-group">
+                <label for="crm">CRM (Código do Conselho) *</label>
+                <input type="text" id="crm" placeholder="Ex: 123456" required>
+                <div class="error-message" id="crmError"></div>
+            </div>
+
+            <div class="form-group">
+                <label for="nome">Nome (Preenchido automaticamente)</label>
+                <input type="text" id="nome" placeholder="Nome aparecerá após CRM válido" disabled>
+            </div>
+
+            <div class="form-group">
+                <label for="data">Data do Plantão *</label>
+                <input type="date" id="data" required>
+            </div>
+
+            <div class="form-group">
+                <label>Turno *</label>
+                <div class="turnos-container">
+                    <button type="button" class="turno-btn" data-turno="M">Manhã</button>
+                    <button type="button" class="turno-btn" data-turno="D">Dia</button>
+                    <button type="button" class="turno-btn" data-turno="T">Tarde</button>
+                    <button type="button" class="turno-btn" data-turno="N">Noite</button>
+                </div>
+            </div>
+
+            <div class="buttons-container">
+                <button type="button" class="btn-adicionar" id="btnAdicionar">✓ Adicionar Plantão</button>
+                <button type="button" class="btn-limpar" id="btnLimpar">🔄 Limpar</button>
+            </div>
+        </form>
+
+        <button type="button" class="btn-admin" onclick="irParaAdmin()">🔐 Área Administrativa</button>
+    </div>
+
+    <script>
+        let turnoSelecionado = null;
+        let medicosDatabase = [];
+
+        // Carrega lista de médicos
+        async function carregarMedicos() {
+            try {
+                const response = await fetch('./medicos.json');
+                const data = await response.json();
+                medicosDatabase = data.medicos;
+            } catch (error) {
+                console.error('Erro ao carregar médicos:', error);
+            }
+        }
+
+        // Valida e busca médico por CRM
+        document.getElementById('crm').addEventListener('change', () => {
+            const crm = document.getElementById('crm').value.trim();
+            const crmError = document.getElementById('crmError');
+            const nomeInput = document.getElementById('nome');
+
+            crmError.classList.remove('show');
+
+            if (!crm) {
+                nomeInput.value = '';
+                return;
+            }
+
+            const medico = medicosDatabase.find(m => m.crm === crm);
+
+            if (medico) {
+                nomeInput.value = medico.nome;
+                document.getElementById('crm').classList.remove('error');
+            } else {
+                nomeInput.value = '';
+                document.getElementById('crm').classList.add('error');
+                crmError.textContent = '❌ CRM não encontrado na base de dados';
+                crmError.classList.add('show');
+            }
+        });
+
+        // Seleção de turno
+        document.querySelectorAll('.turno-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.preventDefault();
+                document.querySelectorAll('.turno-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                turnoSelecionado = btn.dataset.turno;
+            });
+        });
+
+        // Define datas de setembro
+        document.getElementById('data').min = '2026-09-01';
+        document.getElementById('data').max = '2026-09-30';
+
+        // Adicionar plantão
+        document.getElementById('btnAdicionar').addEventListener('click', async (e) => {
+            e.preventDefault();
+
+            const crm = document.getElementById('crm').value.trim();
+            const nome = document.getElementById('nome').value.trim();
+            const data = document.getElementById('data').value;
+
+            if (!crm || !nome || !data || !turnoSelecionado) {
+                mostrarErro('Por favor, preencha todos os campos!');
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/plantoes', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ crm, data, turno: turnoSelecionado })
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    mostrarSucesso('✓ Plantão adicionado com sucesso!');
+                    document.getElementById('crm').value = '';
+                    document.getElementById('nome').value = '';
+                    document.getElementById('data').value = '';
+                    document.querySelectorAll('.turno-btn').forEach(b => b.classList.remove('active'));
+                    turnoSelecionado = null;
+                } else {
+                    mostrarErro(result.error || 'Erro ao adicionar plantão');
+                }
+            } catch (error) {
+                mostrarErro('Erro ao conectar com servidor: ' + error.message);
+            }
+        });
+
+        // Limpar campos
+        document.getElementById('btnLimpar').addEventListener('click', (e) => {
+            e.preventDefault();
+            document.getElementById('crm').value = '';
+            document.getElementById('nome').value = '';
+            document.getElementById('data').value = '';
+            document.querySelectorAll('.turno-btn').forEach(b => b.classList.remove('active'));
+            turnoSelecionado = null;
+        });
+
+        function mostrarSucesso(msg) {
+            const el = document.getElementById('successMessage');
+            el.textContent = msg;
+            el.classList.add('show');
+            setTimeout(() => el.classList.remove('show'), 3000);
+        }
+
+        function mostrarErro(msg) {
+            const el = document.getElementById('errorBox');
+            el.textContent = msg;
+            el.classList.add('show');
+            setTimeout(() => el.classList.remove('show'), 4000);
+        }
+
+        function irParaAdmin() {
+            window.location.href = '/admin.html';
+        }
+
+        // Inicializa
+        carregarMedicos();
+    </script>
+</body>
+</html>
