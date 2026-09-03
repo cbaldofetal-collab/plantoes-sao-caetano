@@ -465,15 +465,18 @@
                 return;
             }
 
-            lista.innerHTML = plantoes.map(p => `
+            lista.innerHTML = plantoes.map(p => {
+                const horas = p.turno === 'N' ? 3 : 6;
+                return `
                 <div class="plantao-item">
                     <div>
                         <strong>${p.nome}</strong> (CRM: ${p.crm})<br>
-                        <small style="color: #666;">${p.data.split('-').reverse().join('/')} - Turno ${p.turno}</small>
+                        <small style="color: #666;">${p.data.split('-').reverse().join('/')} - Turno ${p.turno} - ${horas}h</small>
                     </div>
                     <button type="button" onclick="removerPlantao(${p.id})">Remover</button>
                 </div>
-            `).join('');
+            `;
+            }).join('');
         }
 
         // Remover plantão
