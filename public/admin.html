@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin - Plantões Medicina Fetal</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+    .container {
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+      max-width: 500px;
+      width: 100%;
+      padding: 40px;
+    }
+    h1 {
+      color: #333;
+      margin-bottom: 10px;
+      text-align: center;
+    }
+    .subtitle {
+      color: #666;
+      text-align: center;
+      margin-bottom: 30px;
+      font-size: 14px;
+    }
+    .login-form {
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+    }
+    input {
+      padding: 12px;
+      border: 2px solid #e0e0e0;
+      border-radius: 6px;
+      font-size: 16px;
+      transition: border-color 0.3s;
+    }
+    input:focus {
+      outline: none;
+      border-color: #667eea;
+    }
+    button {
+      padding: 12px;
+      background: #667eea;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      font-size: 16px;
+      cursor: pointer;
+      font-weight: 600;
+      transition: background 0.3s;
+    }
+    button:hover {
+      background: #5568d3;
+    }
+    button:disabled {
+      background: #ccc;
+      cursor: not-allowed;
+    }
+    .admin-panel {
+      display: none;
+    }
+    .admin-panel.active {
+      display: block;
+    }
+    .logout-btn {
+      background: #e74c3c;
+      margin-top: 20px;
+    }
+    .logout-btn:hover {
+      background: #c0392b;
+    }
+    .plantoes-list {
+      margin-top: 20px;
+      max-height: 400px;
+      overflow-y: auto;
+      border: 2px solid #e0e0e0;
+      border-radius: 6px;
+      padding: 15px;
+    }
+    .plantao-item {
+      padding: 10px;
+      border-bottom: 1px solid #f0f0f0;
+      font-size: 14px;
+    }
+    .plantao-item:last-child {
+      border-bottom: none;
+    }
+    .status {
+      padding: 10px;
+      border-radius: 6px;
+      margin-bottom: 15px;
+      text-align: center;
+      display: none;
+    }
+    .status.success {
+      background: #d4edda;
+      color: #155724;
+      display: block;
+    }
+    .status.error {
+      background: #f8d7da;
+      color: #721c24;
+      display: block;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Plantões - Administrativa</h1>
+    <p class="subtitle">São Caetano - Setembro 2026</p>
+
+    <!-- Login Form -->
+    <div class="login-form" id="loginForm">
+      <input type="password" id="senhaInput" placeholder="Digite sua senha" />
+      <button onclick="fazerLogin()">Entrar</button>
+    </div>
+
+    <!-- Admin Panel -->
+    <div class="admin-panel" id="adminPanel">
+      <div class="status" id="status"></div>
+
+      <button onclick="carregarPlantoes()" style="margin-bottom: 10px;">🔄 Atualizar</button>
+      <button onclick="exportarExcel()" style="background: #27ae60; margin-bottom: 20px;">📥 Baixar Excel</button>
+
+      <h3 style="margin-bottom: 10px;">Plantões Registrados:</h3>
+      <div class="plantoes-list" id="plantoesList">
+        <p style="color: #999; text-align: center;">Carregando...</p>
+      </div>
+
+      <button class="logout-btn" onclick="fazerLogout()">Sair</button>
+    </div>
+  </div>
+
+  <script>
+    let senhaCorreta = null;
+
+    function fazerLogin() {
+      const senha = document.getElementById('senhaInput').value;
+      if (!senha) {
+        mostrarStatus('Digite a senha', 'error');
+        return;
+      }
+
+      fetch('/api/plantoes', {
+        headers: { 'x-password': senha }
+      })
+        .then(r => r.json())
+        .then(data => {
+          if (data.error) {
+            mostrarStatus('Senha incorreta', 'error');
+          } else {
+            senhaCorreta = senha;
+            document.getElementById('loginForm').style.display = 'none';
+            document.getElementById('adminPanel').classList.add('active');
+            carregarPlantoes();
+          }
+        })
+        .catch(e => mostrarStatus('Erro: ' + e.message, 'error'));
+    }
+
+    function carregarPlantoes() {
+      fetch('/api/plantoes', {
+        headers: { 'x-password': senhaCorreta }
+      })
+        .then(r => r.json())
+        .then(plantoes => {
+          const lista = document.getElementById('plantoesList');
+          if (plantoes.length === 0) {
+            lista.innerHTML = '<p style="color: #999; text-align: center;">Nenhum plantão registrado</p>';
+            return;
+          }
+
+          lista.innerHTML = plantoes.map(p => `
+            <div class="plantao-item">
+              <strong>${p.nome}</strong> (CRM: ${p.crm})<br/>
+              ${p.data} - Turno ${p.turno} - ${p.horas}h - R$ ${p.valor.toFixed(2).replace('.', ',')}
+            </div>
+          `).join('');
+
+          mostrarStatus(`${plantoes.length} plantões carregados`, 'success');
+        })
+        .catch(e => mostrarStatus('Erro: ' + e.message, 'error'));
+    }
+
+    function exportarExcel() {
+      if (!senhaCorreta) {
+        mostrarStatus('Faça login primeiro', 'error');
+        return;
+      }
+
+      const btn = event.target;
+      btn.disabled = true;
+      btn.textContent = '📥 Gerando...';
+
+      fetch('/api/export-excel', {
+        headers: { 'x-password': senhaCorreta }
+      })
+        .then(r => r.blob())
+        .then(blob => {
+          const url = window.URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = `plantoes_${new Date().toISOString().split('T')[0]}.xlsx`;
+          a.click();
+          window.URL.revokeObjectURL(url);
+          mostrarStatus('Excel baixado com sucesso!', 'success');
+        })
+        .catch(e => mostrarStatus('Erro: ' + e.message, 'error'))
+        .finally(() => {
+          btn.disabled = false;
+          btn.textContent = '📥 Baixar Excel';
+        });
+    }
+
+    function fazerLogout() {
+      senhaCorreta = null;
+      document.getElementById('loginForm').style.display = 'flex';
+      document.getElementById('adminPanel').classList.remove('active');
+      document.getElementById('senhaInput').value = '';
+      document.getElementById('status').innerHTML = '';
+    }
+
+    function mostrarStatus(msg, tipo) {
+      const status = document.getElementById('status');
+      status.textContent = msg;
+      status.className = 'status ' + tipo;
+      setTimeout(() => status.className = 'status', 4000);
+    }
+
+    // Login com Enter
+    document.getElementById('senhaInput')?.addEventListener('keypress', e => {
+      if (e.key === 'Enter') fazerLogin();
+    });
+  </script>
+</body>
+</html>
