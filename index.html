@@ -469,7 +469,7 @@
                 <div class="plantao-item">
                     <div>
                         <strong>${p.nome}</strong> (CRM: ${p.crm})<br>
-                        <small style="color: #666;">${new Date(p.data).toLocaleDateString('pt-BR')} - Turno ${p.turno}</small>
+                        <small style="color: #666;">${p.data.split('-').reverse().join('/')} - Turno ${p.turno}</small>
                     </div>
                     <button type="button" onclick="removerPlantao(${p.id})">Remover</button>
                 </div>
