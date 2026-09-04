@@ -62,6 +62,15 @@ app.post('/api/plantoes', (req, res) => {
       return res.status(400).json({ error: 'CRM não encontrado' });
     }
 
+    // Verifica se já existe plantão do mesmo médico no mesmo turno/data
+    const existe = db.prepare(`
+      SELECT * FROM plantoes WHERE crm = ? AND data = ? AND turno = ?
+    `).get(crm, data, turno);
+
+    if (existe) {
+      return res.status(400).json({ error: `Este médico já possui um plantão em ${data} no turno ${turno === 'M' ? 'Manhã' : turno === 'D' ? 'Dia' : turno === 'T' ? 'Tarde' : 'Noite'}` });
+    }
+
     const horas = HORAS[turno] || 0;
     const tarifa = TARIFAS[turno] || 0;
     const valor = horas * tarifa;
