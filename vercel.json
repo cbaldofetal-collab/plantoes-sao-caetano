@@ -12,16 +12,8 @@
       "dest": "/server.js"
     },
     {
-      "src": "/admin.html",
-      "dest": "/public/admin.html"
-    },
-    {
-      "src": "/medicos.json",
-      "dest": "/medicos.json"
-    },
-    {
       "src": "/(.*)",
-      "dest": "/public/index.html"
+      "dest": "/$1"
     }
   ],
   "env": {
