@@ -36,7 +36,4 @@
       ]
     }
   ],
-  "env": {
-    "ADMIN_PASSWORD": "@admin_password"
-  }
 }
