@@ -1,6 +1,5 @@
 import express from 'express';
 import cors from 'cors';
-import Database from 'better-sqlite3';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
@@ -17,22 +16,32 @@ app.use(cors());
 app.use(express.json());
 app.use(express.static('public'));
 
-// Banco de dados SQLite
-const dbPath = path.join(__dirname, 'plantoes.db');
-const db = new Database(dbPath);
+// Banco de dados em JSON
+const dbPath = path.join(__dirname, 'data', 'plantoes.json');
+const dataDir = path.join(__dirname, 'data');
 
-db.exec(`
-  CREATE TABLE IF NOT EXISTS plantoes (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    crm TEXT NOT NULL,
-    nome TEXT NOT NULL,
-    data TEXT NOT NULL,
-    turno TEXT NOT NULL,
-    horas INTEGER NOT NULL,
-    valor REAL NOT NULL,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-  )
-`);
+// Garante que o diretório existe
+if (!fs.existsSync(dataDir)) {
+  fs.mkdirSync(dataDir, { recursive: true });
+}
+
+// Inicializa arquivo JSON se não existir
+if (!fs.existsSync(dbPath)) {
+  fs.writeFileSync(dbPath, JSON.stringify([]), 'utf-8');
+}
+
+function lerPlantoes() {
+  try {
+    const conteudo = fs.readFileSync(dbPath, 'utf-8');
+    return JSON.parse(conteudo || '[]');
+  } catch {
+    return [];
+  }
+}
+
+function salvarPlantoes(plantoes) {
+  fs.writeFileSync(dbPath, JSON.stringify(plantoes, null, 2), 'utf-8');
+}
 
 const medicos = JSON.parse(fs.readFileSync(path.join(__dirname, 'medicos.json'), 'utf-8')).medicos;
 
@@ -65,10 +74,8 @@ app.post('/api/plantoes', (req, res) => {
       return res.status(400).json({ error: 'CRM não encontrado' });
     }
 
-    // Verifica se já existe plantão do mesmo médico no mesmo turno/data
-    const existe = db.prepare(`
-      SELECT * FROM plantoes WHERE crm = ? AND data = ? AND turno = ?
-    `).get(crm, data, turno);
+    const plantoes = lerPlantoes();
+    const existe = plantoes.find(p => p.crm === crm && p.data === data && p.turno === turno);
 
     if (existe) {
       return res.status(400).json({ error: `Este médico já possui um plantão em ${data} no turno ${turno === 'M' ? 'Manhã' : turno === 'D' ? 'Dia' : turno === 'T' ? 'Tarde' : 'Noite'}` });
@@ -78,13 +85,18 @@ app.post('/api/plantoes', (req, res) => {
     const tarifa = TARIFAS[turno] || 0;
     const valor = horas * tarifa;
 
-    const stmt = db.prepare(`
-      INSERT INTO plantoes (crm, nome, data, turno, horas, valor)
-      VALUES (?, ?, ?, ?, ?, ?)
-    `);
+    plantoes.push({
+      id: Date.now(),
+      crm,
+      nome: medico.nome,
+      data,
+      turno,
+      horas,
+      valor,
+      created_at: new Date().toISOString()
+    });
 
-    stmt.run(crm, medico.nome, data, turno, horas, valor);
-
+    salvarPlantoes(plantoes);
     res.json({ success: true, message: 'Plantão adicionado' });
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -99,8 +111,9 @@ app.get('/api/plantoes', (req, res) => {
       return res.status(401).json({ error: 'Não autorizado' });
     }
 
-    const plantoes = db.prepare('SELECT * FROM plantoes ORDER BY data DESC').all();
-    res.json(plantoes);
+    const plantoes = lerPlantoes();
+    const ordenados = plantoes.sort((a, b) => new Date(b.data) - new Date(a.data));
+    res.json(ordenados);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
@@ -114,7 +127,7 @@ app.get('/api/export-excel', (req, res) => {
       return res.status(401).json({ error: 'Não autorizado' });
     }
 
-    const plantoes = db.prepare('SELECT * FROM plantoes ORDER BY nome, data').all();
+    const plantoes = lerPlantoes().sort((a, b) => a.nome.localeCompare(b.nome) || new Date(a.data) - new Date(b.data));
 
     // Agrupar por médico
     const porMedico = {};
