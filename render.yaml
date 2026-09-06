@@ -1,0 +1,13 @@
+services:
+  - type: web
+    name: plantoes-medicos
+    env: node
+    plan: free
+    buildCommand: npm install
+    startCommand: node server.js
+    envVars:
+      - key: ADMIN_PASSWORD
+        value: Carb@66205
+      - key: PORT
+        value: 3000
+    autoDeploy: true
