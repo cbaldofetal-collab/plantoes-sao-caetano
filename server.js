@@ -202,6 +202,13 @@ app.get('/api/export-excel', (req, res) => {
   }
 });
 
+// Error handling middleware
+app.use((err, req, res, next) => {
+  console.error('ERRO INTERNO:', err.message, err.stack);
+  res.status(500).json({ error: err.message });
+});
+
 app.listen(PORT, () => {
-  console.log(`Servidor rodando em porta ${PORT}`);
+  console.log(`✓ Servidor rodando em porta ${PORT}`);
+  console.log(`✓ Doctors loaded: ${medicos.length}`);
 });
