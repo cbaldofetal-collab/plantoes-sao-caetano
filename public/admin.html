@@ -153,7 +153,7 @@
         return;
       }
 
-      fetch('/api/plantoes', {
+      fetch('https://plantoes-sao-caetano.onrender.com/api/plantoes', {
         headers: { 'x-password': senha }
       })
         .then(r => r.json())
@@ -171,7 +171,7 @@
     }
 
     function carregarPlantoes() {
-      fetch('/api/plantoes', {
+      fetch('https://plantoes-sao-caetano.onrender.com/api/plantoes', {
         headers: { 'x-password': senhaCorreta }
       })
         .then(r => r.json())

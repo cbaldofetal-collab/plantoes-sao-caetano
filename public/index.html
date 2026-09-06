@@ -224,7 +224,7 @@
             }
 
             try {
-                const response = await fetch('/api/plantoes', {
+                const response = await fetch('https://plantoes-sao-caetano.onrender.com/api/plantoes', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ crm, data, turno: turnoSelecionado })
