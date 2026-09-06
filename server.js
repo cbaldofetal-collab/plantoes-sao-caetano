@@ -43,7 +43,15 @@ function salvarPlantoes(plantoes) {
   fs.writeFileSync(dbPath, JSON.stringify(plantoes, null, 2), 'utf-8');
 }
 
-const medicos = JSON.parse(fs.readFileSync(path.join(__dirname, 'medicos.json'), 'utf-8')).medicos;
+let medicos = [];
+try {
+  const medicosPath = path.join(__dirname, 'medicos.json');
+  if (fs.existsSync(medicosPath)) {
+    medicos = JSON.parse(fs.readFileSync(medicosPath, 'utf-8')).medicos;
+  }
+} catch (error) {
+  console.error('Erro ao carregar medicos.json:', error.message);
+}
 
 // Preços por turno (em R$)
 const TARIFAS = {
